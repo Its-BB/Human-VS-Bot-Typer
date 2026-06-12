@@ -3,8 +3,6 @@
   "installCommand": "pip install -r requirements.txt",
   "buildCommand": "python build_model.py",
   "rewrites": [
-    { "source": "/api/round", "destination": "/api" },
-    { "source": "/api/guess", "destination": "/api" },
-    { "source": "/api/health", "destination": "/api" }
+    { "source": "/(.*)", "destination": "/api" }
   ]
 }
