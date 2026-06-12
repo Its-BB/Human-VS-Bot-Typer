@@ -102,6 +102,7 @@ def _autocorr(xs: list[float]) -> float:
         return 0.0
     return float(np.corrcoef(a, b)[0, 1])
 
+
 def _entropy(xs: list[float]) -> float:
     if len(xs) < 3:
         return 0.0

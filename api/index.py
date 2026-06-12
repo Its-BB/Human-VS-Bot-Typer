@@ -1,13 +1,33 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
 
-from flask import Flask, jsonify, request
+PUBLIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "public")
+if not os.path.isdir(PUBLIC):
+    PUBLIC = os.path.join(ROOT, "public")
+
+from flask import Flask, jsonify, request, send_from_directory
 
 from api_logic import create_round, health_info, process_guess
 
 app = Flask(__name__)
+
+
+@app.get("/")
+def index():
+    return send_from_directory(PUBLIC, "index.html")
+
+
+@app.get("/app.js")
+def app_js():
+    return send_from_directory(PUBLIC, "app.js")
+
+
+@app.get("/style.css")
+def style_css():
+    return send_from_directory(PUBLIC, "style.css")
 
 
 @app.get("/api/health")
