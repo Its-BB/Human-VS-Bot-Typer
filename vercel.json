@@ -2,9 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pip install -r requirements.txt",
   "buildCommand": "python build_model.py",
-  "functions": {
-    "api/round.py": { "includeFiles": "api/models/**" },
-    "api/guess.py": { "includeFiles": "api/models/**" },
-    "api/health.py": { "includeFiles": "api/models/**" }
-  }
+  "rewrites": [
+    { "source": "/api/round", "destination": "/api" },
+    { "source": "/api/guess", "destination": "/api" },
+    { "source": "/api/health", "destination": "/api" }
+  ]
 }
