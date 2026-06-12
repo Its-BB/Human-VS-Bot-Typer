@@ -3,62 +3,52 @@ import os
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, ROOT)
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
 
-from http.server import BaseHTTPRequestHandler
+from flask import Flask, Response, jsonify, request
 
-from api_logic import create_round, health_info, process_guess
-from lib.http import read_json, send_json
+_dir = os.path.dirname(os.path.abspath(__file__))
+_spec = importlib.util.spec_from_file_location("web", os.path.join(_dir, "web.py"))
+_web = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_web)
+FILES = _web.FILES
+TYPES = _web.TYPES
 
-_assets_path = os.path.join(os.path.dirname(__file__), "_assets.py")
-_spec = importlib.util.spec_from_file_location("_assets", _assets_path)
-_assets = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_assets)
-FILES = _assets.FILES
-TYPES = _assets.TYPES
-
-ROUTES = {
-    "/": "index.html",
-    "/index.html": "index.html",
-    "/style.css": "style.css",
-    "/app.js": "app.js",
-}
+app = Flask(__name__)
 
 
-def _norm(path: str) -> str:
-    p = path.split("?")[0].split("#")[0]
-    if not p.startswith("/"):
-        p = "/" + p
-    return p.rstrip("/") or "/"
+@app.get("/")
+@app.get("/index.html")
+def index():
+    return Response(FILES["index.html"], mimetype=TYPES["index.html"])
 
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        path = _norm(self.path)
-        if path == "/api/health":
-            send_json(self, health_info())
-            return
-        name = ROUTES.get(path)
-        if not name or name not in FILES:
-            self.send_error(404)
-            return
-        body = FILES[name].encode("utf-8")
-        self.send_response(200)
-        self.send_header("Content-Type", TYPES[name])
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+@app.get("/style.css")
+def style():
+    return Response(FILES["style.css"], mimetype=TYPES["style.css"])
 
-    def do_POST(self):
-        path = _norm(self.path)
-        if path == "/api/round":
-            send_json(self, create_round())
-        elif path == "/api/guess":
-            data = read_json(self)
-            body, code = process_guess(data.get("round_id"), data.get("guess"))
-            send_json(self, body, code)
-        else:
-            self.send_error(404)
 
-    def log_message(self, *_):
-        pass
+@app.get("/app.js")
+def script():
+    return Response(FILES["app.js"], mimetype=TYPES["app.js"])
+
+
+@app.get("/api/health")
+def health():
+    from api_logic import health_info
+    return jsonify(health_info())
+
+
+@app.post("/api/round")
+def round():
+    from api_logic import create_round
+    return jsonify(create_round())
+
+
+@app.post("/api/guess")
+def guess():
+    from api_logic import process_guess
+    data = request.get_json(silent=True) or {}
+    body, code = process_guess(data.get("round_id"), data.get("guess"))
+    return jsonify(body), code
