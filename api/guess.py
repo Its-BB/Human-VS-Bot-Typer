@@ -1,3 +1,8 @@
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from http.server import BaseHTTPRequestHandler
 
 from api_logic import process_guess
@@ -9,7 +14,3 @@ class handler(BaseHTTPRequestHandler):
         data = read_json(self)
         body, code = process_guess(data.get("round_id"), data.get("guess"))
         send_json(self, body, code)
-
-    def do_OPTIONS(self):
-        self.send_response(204)
-        self.end_headers()
