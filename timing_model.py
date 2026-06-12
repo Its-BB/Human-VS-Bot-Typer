@@ -32,7 +32,6 @@ class ModelBundle:
 
 _ROOT = Path(__file__).resolve().parent
 MODEL_PATH = _ROOT / "models" / "bundle.joblib"
-_MODEL_PATHS = [MODEL_PATH, _ROOT / "api" / "models" / "bundle.joblib"]
 _bundle: ModelBundle | None = None
 
 
@@ -263,9 +262,8 @@ def save_model(path: Path | None = None) -> ModelBundle:
 
 
 def _load_disk() -> ModelBundle | None:
-    for p in _MODEL_PATHS:
-        if p.is_file():
-            return joblib.load(p)
+    if MODEL_PATH.is_file():
+        return joblib.load(MODEL_PATH)
     return None
 
 
