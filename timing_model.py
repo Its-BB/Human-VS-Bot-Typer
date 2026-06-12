@@ -30,7 +30,9 @@ class ModelBundle:
     feat_imp: dict[str, float]
 
 
-MODEL_PATH = Path(__file__).resolve().parent / "models" / "bundle.joblib"
+_ROOT = Path(__file__).resolve().parent
+MODEL_PATH = _ROOT / "models" / "bundle.joblib"
+_MODEL_PATHS = [MODEL_PATH, _ROOT / "api" / "models" / "bundle.joblib"]
 _bundle: ModelBundle | None = None
 
 
@@ -99,7 +101,6 @@ def _autocorr(xs: list[float]) -> float:
     if a.std() < 1e-6 or b.std() < 1e-6:
         return 0.0
     return float(np.corrcoef(a, b)[0, 1])
-
 
 def _entropy(xs: list[float]) -> float:
     if len(xs) < 3:
@@ -261,8 +262,9 @@ def save_model(path: Path | None = None) -> ModelBundle:
 
 
 def _load_disk() -> ModelBundle | None:
-    if MODEL_PATH.is_file():
-        return joblib.load(MODEL_PATH)
+    for p in _MODEL_PATHS:
+        if p.is_file():
+            return joblib.load(p)
     return None
 
 
